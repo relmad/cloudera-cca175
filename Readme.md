@@ -80,5 +80,9 @@ hdfs dfs -put ./mark.csv /user/training
 ```
 # Transform, Stage, Store
 Convert a set of data values in a given format stored in HDFS into new data values and/or a new data format and write them into HDFS. This includes writing Spark applications in both Scala and Python (see note above on exam question format for more information on using either Scala or Python):
+
+The example solutions for part in an executable format in `src/main/scala/com/github/relmad/cloudera/cca175/SparkPractice.scala`.
+The example is fully portable to a `spark-shell` execution. If executed from the shell I recommend using `hdfs dfs -rm -r <dirName>` instead of the `deleteDir(dirName)` utility.
+
 # Data Analysis
 Use Data Definition Language (DDL) to create tables in the Hive metastore for use by Hive and Impala.
