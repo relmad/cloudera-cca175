@@ -46,7 +46,8 @@ sqoop-import --connect jdbc:mysql://localhost/clouderacert --username root -P --
 ### Flume Components
 Source -> Channel->Sink
 ### To fetch data from Sequence generator using a sequence generator source, a memory channel, and an HDFS sink.
-* Configuration  in /usr/lib/flume-ng/conf/seq_gen.conf  
+* Configuration  in /usr/lib/flume-ng/conf/seq_gen.conf
+
 \# Naming the components on the current agent 
 SeqGenAgent.sources = SeqSource   
 SeqGenAgent.channels = MemChannel 
@@ -86,3 +87,48 @@ The example is fully portable to a `spark-shell` execution. If executed from the
 
 # Data Analysis
 Use Data Definition Language (DDL) to create tables in the Hive metastore for use by Hive and Impala.
+##Read and/or create a table in the Hive metastore in a given schema
+###Create a table product with fields product_id (int),product_name(string), product_cost(double),date_purchased(date).
+```sh
+create table product(product_id int,product_name string,product_cost double,date_purchased timestamp);
+```
+###Verify table creation
+```sh
+show tables;
+```
+```sh
+describe product;
+```
+```sh
+describe formatted product;
+```
+##Extract an Avro schema from a set of datafiles using avro-tools
+Extract from an example avro file product_data.avro
+```sh
+java -jar ./lib/avro-tools-1.8.1.jar getschema ./tmpdata/product_data.avro
+```
+##Create a table in the Hive metastore using the Avro file format and an external schema file
+Create table product with avro schema file product.avsc
+```sh
+>hive CREATE TABLE product  ROW FORMAT SERDE  'org.apache.hadoop.hive.serde2.avro.AvroSerDe'  
+        >WITH SERDEPROPERTIES ('avro.schema.url'='hdfs://localhost:8020/user/training/product.avsc')  
+        >STORED as INPUTFORMAT'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat';
+```
+##Improve query performance by creating partitioned tables in the Hive metastore
+Create table product_part
+```sh
+create table product_part(id int, name string)  
+COMMENT 'This is the prodtc part table' 
+PARTITIONED BY(year int) 
+STORED AS TEXTFILE;
+```
+Insert into product_part table from tmp_product_part table
+
+```sh
+insert overwrite table product_part partition (year=2016) select id,name,year from tmp_product_part where year=2016; 
+```
+##Evolve an Avro schema by changing JSON files
+update avro schema of product by creating another schema file adding new field an alter table set tblproperties for avro url.
+```sh
+alter table product set tblproperties ('avro.schema.url'='hdfs://localhost/user/training/product_mod.avsc')
+```
